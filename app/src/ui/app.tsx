@@ -3320,7 +3320,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderApp() {
-    const repositorySidebarWidth = 280
+    const repositorySidebarWidth = 250
 
     return (
       <div

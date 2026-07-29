@@ -40,14 +40,16 @@ export class AppWindow {
 
   private minWidth = 960
   private minHeight = 660
+  private defaultWidth = 1440
+  private defaultHeight = 900
 
   // See https://github.com/desktop/desktop/pull/11162
   private shouldMaximizeOnShow = false
 
   public constructor() {
     const savedWindowState = windowStateKeeper({
-      defaultWidth: this.minWidth,
-      defaultHeight: this.minHeight,
+      defaultWidth: this.defaultWidth,
+      defaultHeight: this.defaultHeight,
       maximize: false,
     })
 
@@ -169,10 +171,6 @@ export class AppWindow {
     })
 
     this.window.webContents.once('did-finish-load', () => {
-      if (process.env.NODE_ENV === 'development') {
-        this.window.webContents.openDevTools()
-      }
-
       this._loadTime = now() - startLoad
 
       this.maybeEmitDidLoad()
@@ -183,7 +181,6 @@ export class AppWindow {
     })
 
     this.window.webContents.on('did-fail-load', () => {
-      this.window.webContents.openDevTools()
       this.window.show()
     })
 
