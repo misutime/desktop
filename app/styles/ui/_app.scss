@@ -124,7 +124,7 @@
   flex-shrink: 0;
   min-width: 0;
   overflow-y: auto;
-  border-right: 1px solid var(--toolbar-border-color);
+  border-right: var(--base-border);
   background: var(--background-color);
 }
 
