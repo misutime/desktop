@@ -177,6 +177,12 @@ interface ISectionFilterListProps<T extends IFilterListItem, GroupIdentifier> {
   readonly hideFilterRow?: boolean
 
   /**
+   * Whether the filter text box should auto-focus on mount. Defaults to true.
+   * Useful for permanent sidebars where focus should not be stolen on load.
+   */
+  readonly autoFocus?: boolean
+
+  /**
    * A handler called whenever a context menu event is received on the
    * row container element.
    *
@@ -280,7 +286,7 @@ export class SectionFilterList<
         ref={this.onTextBoxRef}
         displayClearButton={true}
         prefixedIcon={octicons.search}
-        autoFocus={true}
+        autoFocus={this.props.autoFocus ?? true}
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"
         onValueChanged={this.onFilterValueChanged}

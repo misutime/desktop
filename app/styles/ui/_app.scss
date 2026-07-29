@@ -112,6 +112,29 @@
   }
 }
 
+.app-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.repository-sidebar {
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--toolbar-border-color);
+  background: var(--background-color);
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
 .sr-only {
   clip: rect(0 0 0 0);
   clip-path: inset(50%);

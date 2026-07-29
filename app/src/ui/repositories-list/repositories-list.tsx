@@ -75,6 +75,12 @@ interface IRepositoriesListProps {
   readonly filterText: string
 
   readonly dispatcher: Dispatcher
+
+  /**
+   * Whether the filter text field should automatically receive focus
+   * when the component mounts. Defaults to true.
+   */
+  readonly autoFocus?: boolean
 }
 
 interface IRepositoriesListState {
@@ -359,6 +365,7 @@ export class RepositoriesList extends React.Component<
           getGroupAriaLabel={this.getGroupAriaLabelGetter(groups)}
           getItemAriaLabel={this.getItemAriaLabel}
           onSelectionChanged={this.onSelectionChanged}
+          autoFocus={this.props.autoFocus !== false}
         />
       </div>
     )

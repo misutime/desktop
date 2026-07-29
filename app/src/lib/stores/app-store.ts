@@ -8196,12 +8196,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const allRepositories = await this.repositoriesStore.getAll()
-    if (allRepositories.length === 0) {
-      this._closeFoldout(FoldoutType.Repository)
-    } else {
-      this._showFoldout({ type: FoldoutType.Repository })
-    }
+    // No-op: repository sidebar is always visible, no foldout to manage
   }
 
   public async _cloneAgain(url: string, path: string): Promise<void> {

@@ -50,7 +50,7 @@ import { DeleteBranch, DeleteRemoteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import {
   Toolbar,
-  ToolbarDropdown,
+  ToolbarButton,
   DropdownState,
   PushPullButton,
   BranchDropdown,
@@ -277,6 +277,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private updateIntervalHandle?: number
 
   private repositoryViewRef = React.createRef<RepositoryView>()
+  private repositorySidebarRef = React.createRef<HTMLDivElement>()
 
   /**
    * Gets a value indicating whether or not we're currently showing a
@@ -935,16 +936,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private chooseRepository() {
-    if (
-      this.state.currentFoldout &&
-      this.state.currentFoldout.type === FoldoutType.Repository
-    ) {
-      return this.props.dispatcher.closeFoldout(FoldoutType.Repository)
-    }
-
-    return this.props.dispatcher.showFoldout({
-      type: FoldoutType.Repository,
-    })
+    this.focusRepositorySidebar()
   }
 
   private showBranches() {
@@ -3328,14 +3320,29 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderApp() {
+    const repositorySidebarWidth = 280
+
     return (
       <div
         id="desktop-app-contents"
         className={this.getDesktopAppContentsClassNames()}
       >
         {this.renderToolbar()}
-        {this.renderBanner()}
-        {this.renderRepository()}
+        <div className="app-body">
+          {!this.inNoRepositoriesViewState() && (
+            <div
+              className="repository-sidebar"
+              ref={this.repositorySidebarRef}
+              style={{ width: repositorySidebarWidth }}
+            >
+              {this.renderRepositoryList()}
+            </div>
+          )}
+          <div className="main-content">
+            {this.renderBanner()}
+            {this.renderRepository()}
+          </div>
+        </div>
         {this.renderPopups()}
         {this.renderDragElement()}
       </div>
@@ -3370,6 +3377,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
         dispatcher={this.props.dispatcher}
+        autoFocus={false}
       />
     )
   }
@@ -3444,14 +3452,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     shell.showFolderContents(repository.path)
   }
 
-  private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-    } else {
-      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
-    }
-  }
-
   private onExitTutorial = () => {
     if (
       this.state.repositories.length === 1 &&
@@ -3462,9 +3462,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.showPopup({
         type: PopupType.ConfirmExitTutorial,
       })
-    } else {
-      // Otherwise pop open repositories panel
-      this.onRepositoryDropdownStateChanged('open')
+    }
+  }
+
+  private focusRepositorySidebar = () => {
+    if (this.repositorySidebarRef.current) {
+      const input = this.repositorySidebarRef.current.querySelector<
+        HTMLInputElement
+      >('.filter-list-filter-field input')
+      if (input) {
+        input.focus()
+      }
     }
   }
 
@@ -3487,42 +3495,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
-    const isOpen =
-      this.state.currentFoldout &&
-      this.state.currentFoldout.type === FoldoutType.Repository
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    const tooltip = repository && !isOpen ? repository.path : undefined
-
-    const foldoutWidth = clamp(this.state.sidebarWidth)
-
-    const foldoutStyle: React.CSSProperties = {
-      position: 'absolute',
-      marginLeft: 0,
-      width: foldoutWidth,
-      minWidth: foldoutWidth,
-      height: '100%',
-      top: 0,
-    }
-
-    /** The dropdown focus trap will stop focus event propagation we made need
-     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
-     * are open */
-    const enableFocusTrap = this.state.currentPopup === null
+    const tooltip = repository ? repository.path : undefined
 
     return (
-      <ToolbarDropdown
+      <ToolbarButton
         icon={icon}
         title={title}
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
         tooltip={tooltip}
-        foldoutStyle={foldoutStyle}
+        onClick={this.focusRepositorySidebar}
         onContextMenu={this.onRepositoryToolbarButtonContextMenu}
-        onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
-        dropdownContentRenderer={this.renderRepositoryList}
-        dropdownState={currentState}
-        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -4065,7 +4047,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {
     this.props.dispatcher.selectRepository(repository)
-    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
   private onViewCommitOnGitHub = async (SHA: string, filePath?: string) => {
