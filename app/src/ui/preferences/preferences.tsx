@@ -81,6 +81,8 @@ import {
   setNumberFormatPreference,
 } from '../../models/formatting-preferences'
 import { enableFormattingPreferences } from '../../lib/feature-flag'
+import { AI } from './ai'
+import { AISettings, getAISettings, setAISettings } from '../../models/ai-settings'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -189,6 +191,7 @@ interface IPreferencesState {
   readonly selectedTimeFormat?: TimeFormat
   readonly selectedNumberFormat?: INumberFormat
   readonly preferAbsoluteDates?: boolean
+  readonly aiSettings: AISettings
 }
 
 /**
@@ -259,6 +262,7 @@ export class Preferences extends React.Component<
       selectedTimeFormat: getTimeFormatPreference(),
       selectedNumberFormat: getNumberFormatPreference(),
       preferAbsoluteDates: getPreferAbsoluteDates(),
+      aiSettings: getAISettings(),
     }
   }
 
@@ -423,6 +427,10 @@ export class Preferences extends React.Component<
               <Octicon className="icon" symbol={octicons.accessibility} />
               Accessibility
             </span>
+            <span id={this.getTabId(PreferencesTab.AI)}>
+              <Octicon className="icon" symbol={octicons.aiModel} />
+              AI
+            </span>
           </TabBar>
 
           {this.renderActiveTab()}
@@ -461,6 +469,9 @@ export class Preferences extends React.Component<
         break
       case PreferencesTab.Accessibility:
         suffix = 'accessibility'
+        break
+      case PreferencesTab.AI:
+        suffix = 'ai'
         break
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
@@ -747,6 +758,14 @@ export class Preferences extends React.Component<
           />
         )
         break
+      case PreferencesTab.AI:
+        View = (
+          <AI
+            aiSettings={this.state.aiSettings}
+            onAISettingsChanged={this.onAISettingsChanged}
+          />
+        )
+        break
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
@@ -885,6 +904,10 @@ export class Preferences extends React.Component<
 
   private onPreferAbsoluteDatesChanged = (preferAbsoluteDates: boolean) => {
     this.setState({ preferAbsoluteDates })
+  }
+
+  private onAISettingsChanged = (aiSettings: AISettings) => {
+    this.setState({ aiSettings })
   }
 
   private onUseCustomEditorChanged = (useCustomEditor: boolean) => {
@@ -1159,6 +1182,8 @@ export class Preferences extends React.Component<
         dispatcher.setPreferAbsoluteDates(this.state.preferAbsoluteDates)
       }
     }
+
+    setAISettings(this.state.aiSettings)
 
     this.props.onDismissed()
   }
