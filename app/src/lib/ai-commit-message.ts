@@ -109,7 +109,9 @@ export async function generateAiCommitMessage(
  * title/summary, and any remaining lines form the description.
  */
 function parseCommitMessage(content: string): IAiCommitMessage {
-  const trimmed = content.trim()
+  // Normalize line endings: CRLF -> LF, standalone CR -> LF
+  const normalized = content.replace(/\r\n?/g, '\n')
+  const trimmed = normalized.trim()
 
   if (trimmed.length === 0) {
     return { title: '', description: '' }
