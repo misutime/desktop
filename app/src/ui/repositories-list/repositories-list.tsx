@@ -33,7 +33,6 @@ const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
-  readonly recentRepositories: ReadonlyArray<number>
 
   /** A cache of the latest repository state values, keyed by the repository id */
   readonly localRepositoryStateLookup: ReadonlyMap<
@@ -127,16 +126,11 @@ export class RepositoriesList extends React.Component<
   private getRepositoryGroups = memoizeOne(
     (
       repositories: ReadonlyArray<Repositoryish> | null,
-      localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-      recentRepositories: ReadonlyArray<number>
+      localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
     ) =>
       repositories === null
         ? []
-        : groupRepositories(
-            repositories,
-            localRepositoryStateLookup,
-            recentRepositories
-          )
+        : groupRepositories(repositories, localRepositoryStateLookup)
   )
 
   /**
@@ -254,8 +248,6 @@ export class RepositoriesList extends React.Component<
       return 'Other'
     } else if (kind === 'dotcom') {
       return group.owner.login
-    } else if (kind === 'recent') {
-      return 'Recent'
     } else {
       assertNever(kind, `Unknown repository group kind ${kind}`)
     }
@@ -330,8 +322,7 @@ export class RepositoriesList extends React.Component<
   public render() {
     const groups = this.getRepositoryGroups(
       this.props.repositories,
-      this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
+      this.props.localRepositoryStateLookup
     )
 
     // So there's two types of selection at play here. There's the repository
