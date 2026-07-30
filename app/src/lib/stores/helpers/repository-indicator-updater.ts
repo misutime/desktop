@@ -1,9 +1,9 @@
 import { Repository } from '../../../models/repository'
 
 /**
- * Refresh repository indicators every 15 minutes.
+ * Refresh repository indicators every 2 minutes.
  */
-const RefreshInterval = 15 * 60 * 1000
+const RefreshInterval = 2 * 60 * 1000
 
 /**
  * An upper bound to the skew that should be applied to the fetch interval to

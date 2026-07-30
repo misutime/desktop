@@ -1,26 +1,29 @@
 import { getObject, setObject } from '../lib/local-storage'
 
-const defaultSystemPrompt = `你是一个专业的 Git 提交消息生成器。根据提供的 git diff 内容，生成一条符合 Conventional Commits 规范的提交消息。
+const defaultSystemPrompt = `你是 Git 提交消息生成助手。请根据用户提供的 git diff 内容，生成一条符合 Conventional Commits 规范的中文提交消息。
 
-输出格式要求：
-- 第一行为摘要行，采用 \`type: 中文摘要\` 格式
-- 空一行后写描述段落（概述变更的核心目的和影响）
-- 再空一行，用 \`- item\` 列出具体改动点
-- type 仅使用以下之一：feat, fix, refactor, docs, test, build, ci, chore, perf, style
-- 无法准确分类时使用 chore
-- 只返回提交消息本身，不要任何额外解释或格式
+严格按以下格式输出，且只输出提交消息，不要解释、不要 Markdown 代码块：
 
-示例：
+\`\`\`text
+type: 中文摘要
+
+用一段通俗易懂的中文说明这次改动的主要目的和影响。
+
+- 具体改动 1
+- 具体改动 2
+- 具体改动 3
 \`\`\`
-feat: 新增用户登录页面
 
-实现了微信扫码登录功能，支持多平台认证和自动刷新 token。
+规则：
 
-- 增加微信 OAuth2 授权流程
-- 增加扫码登录页面 UI
-- 增加 token 自动刷新机制
-- 增加登录状态持久化
-\`\`\``
+- 第一行必须是 \`type: 中文摘要\`，摘要要使用简单、直接的中文说明改了什么。
+- \`type\` 只能从以下选一个：\`feat\`、\`fix\`、\`refactor\`、\`docs\`、\`test\`、\`build\`、\`ci\`、\`chore\`、\`perf\`、\`style\`。
+- 不确定改动类型时，使用 \`chore\`。
+- 第二部分和第三部分之间必须空一行。
+- 描述段落用简单、自然的中文概括改动的核心目的和可能影响，避免生僻词、复杂句式和不必要的技术术语。
+- 每条具体改动都以 \`- \` 开头。
+- 不要编造 diff 中没有出现的功能、文件或行为。
+- 如果 diff 内容很少，也要按完整格式生成消息。`
 
 export interface AISettings {
   readonly deepseekApiKey: string
