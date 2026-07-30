@@ -1811,6 +1811,9 @@ export class CommitMessage extends React.Component<
       commitSpellcheckEnabled,
     } = this.props
 
+    const aiSettings = getAISettings()
+    const aiConfigured = aiSettings.activeModel !== ''
+
     return (
       <div
         role="group"
@@ -1841,24 +1844,27 @@ export class CommitMessage extends React.Component<
             }
             spellcheck={commitSpellcheckEnabled}
           />
-          {getAISettings().activeModel !== '' && (
-            <Button
-              onClick={this.onGenerateAiCommitMessage}
-              disabled={
-                isCommitting === true ||
-                isGeneratingCommitMessage === true ||
-                this.state.isGeneratingAiCommitMessage
-              }
-              aria-label="Generate commit message"
-              tooltip="Generate commit message with AI"
-            >
-              {this.state.isGeneratingAiCommitMessage ? (
-                <Loading />
-              ) : (
-                <Octicon symbol={octicons.aiModel} />
-              )}
-            </Button>
-          )}
+          <Button
+            onClick={this.onGenerateAiCommitMessage}
+            disabled={
+              !aiConfigured ||
+              isCommitting === true ||
+              isGeneratingCommitMessage === true ||
+              this.state.isGeneratingAiCommitMessage
+            }
+            aria-label="Generate commit message"
+            tooltip={
+              aiConfigured
+                ? 'Generate commit message with AI'
+                : 'Configure AI API key and model in Preferences'
+            }
+          >
+            {this.state.isGeneratingAiCommitMessage ? (
+              <Loading />
+            ) : (
+              <Octicon symbol={octicons.aiModel} />
+            )}
+          </Button>
           {showRepoRuleCommitMessageFailureHint &&
             this.renderRepoRuleCommitMessageFailureHint()}
           {showSummaryLengthHint && this.renderSummaryLengthHint()}
