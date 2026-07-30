@@ -62,8 +62,7 @@ import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 import { isDotCom } from '../../lib/endpoint-capabilities'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import {
-  enableCommitMessageGeneration,
+import { enableCommitMessageGeneration,
   enableCopilotSdkCommitMessageGeneration,
   enableHooksEnvironment,
 } from '../../lib/feature-flag'
@@ -71,6 +70,9 @@ import { getAccountForCommitMessageGeneration } from '../../lib/get-account-for-
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { HookProgress } from '../../lib/git'
 import { assertNever } from '../../lib/fatal-error'
+import { getFilesDiffText } from '../../lib/git/diff'
+import { generateAiCommitMessage } from '../../lib/ai-commit-message'
+import { getAISettings } from '../../models/ai-settings'
 
 const addAuthorIcon: OcticonSymbolVariant = {
   w: 18,
@@ -264,6 +266,7 @@ interface ICommitMessageState {
   readonly repoRuleCommitMessageFailures: RepoRulesMetadataFailures
   readonly repoRuleCommitAuthorFailures: RepoRulesMetadataFailures
   readonly repoRuleBranchNameFailures: RepoRulesMetadataFailures
+  readonly isGeneratingAiCommitMessage: boolean
 }
 
 function findCommitMessageAutoCompleteProvider(
@@ -321,6 +324,7 @@ export class CommitMessage extends React.Component<
       repoRuleCommitMessageFailures: new RepoRulesMetadataFailures(),
       repoRuleCommitAuthorFailures: new RepoRulesMetadataFailures(),
       repoRuleBranchNameFailures: new RepoRulesMetadataFailures(),
+      isGeneratingAiCommitMessage: false,
     }
   }
 
@@ -568,6 +572,45 @@ export class CommitMessage extends React.Component<
         timestamp: Date.now(),
       },
     })
+  }
+
+  private onGenerateAiCommitMessage = async () => {
+    this.setState({ isGeneratingAiCommitMessage: true })
+
+    try {
+      const settings = getAISettings()
+      if (settings.activeModel === '') {
+        return
+      }
+
+      const diff = await getFilesDiffText(
+        this.props.repository,
+        this.props.filesSelected
+      )
+
+      if (!diff) {
+        return
+      }
+
+      const result = await generateAiCommitMessage(diff, settings)
+
+      if (result === null) {
+        return
+      }
+
+      this.setState({
+        commitMessage: {
+          summary: result.title,
+          description: result.description,
+          timestamp: Date.now(),
+        },
+        isGeneratingAiCommitMessage: false,
+      })
+    } catch (e) {
+      log.error('Failed to generate AI commit message', e)
+    } finally {
+      this.setState({ isGeneratingAiCommitMessage: false })
+    }
   }
 
   private onSubmit = () => {
@@ -1798,6 +1841,24 @@ export class CommitMessage extends React.Component<
             }
             spellcheck={commitSpellcheckEnabled}
           />
+          {getAISettings().activeModel !== '' && (
+            <Button
+              onClick={this.onGenerateAiCommitMessage}
+              disabled={
+                isCommitting === true ||
+                isGeneratingCommitMessage === true ||
+                this.state.isGeneratingAiCommitMessage
+              }
+              aria-label="Generate commit message"
+              tooltip="Generate commit message with AI"
+            >
+              {this.state.isGeneratingAiCommitMessage ? (
+                <Loading />
+              ) : (
+                <Octicon symbol={octicons.aiModel} />
+              )}
+            </Button>
+          )}
           {showRepoRuleCommitMessageFailureHint &&
             this.renderRepoRuleCommitMessageFailureHint()}
           {showSummaryLengthHint && this.renderSummaryLengthHint()}

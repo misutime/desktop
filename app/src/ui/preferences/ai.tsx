@@ -4,6 +4,7 @@ import {
   AISettings,
   AIAvailableModels,
   AIModelInfo,
+  defaultAISettings,
 } from '../../models/ai-settings'
 
 interface IAIPreferencesProps {
@@ -25,6 +26,22 @@ export class AI extends React.Component<IAIPreferencesProps, {}> {
     this.props.onAISettingsChanged({
       ...this.props.aiSettings,
       mimoApiKey: event.currentTarget.value,
+    })
+  }
+
+  private onSystemPromptChanged = (
+    event: React.FormEvent<HTMLTextAreaElement>
+  ) => {
+    this.props.onAISettingsChanged({
+      ...this.props.aiSettings,
+      systemPrompt: event.currentTarget.value,
+    })
+  }
+
+  private onResetSystemPrompt = () => {
+    this.props.onAISettingsChanged({
+      ...this.props.aiSettings,
+      systemPrompt: defaultAISettings.systemPrompt,
     })
   }
 
@@ -133,6 +150,45 @@ export class AI extends React.Component<IAIPreferencesProps, {}> {
           </div>
           <p className="settings-description">
             Choose the AI model to power future AI-assisted Git features.
+          </p>
+        </div>
+        <div className="advanced-section">
+          <h2>System Prompt</h2>
+          <div className="text-box-component">
+            <label htmlFor="ai-system-prompt">
+              Custom instructions for generating commit messages
+              {aiSettings.systemPrompt !== defaultAISettings.systemPrompt && (
+                <>
+                  {' '}
+                  <span
+                    className="link-button-component"
+                    role="button"
+                    tabIndex={0}
+                    onClick={this.onResetSystemPrompt}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        this.onResetSystemPrompt()
+                      }
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    Restore default
+                  </span>
+                </>
+              )}
+            </label>
+            <textarea
+              id="ai-system-prompt"
+              rows={6}
+              value={aiSettings.systemPrompt}
+              onChange={this.onSystemPromptChanged}
+              className="form-control"
+              style={{ width: '100%', resize: 'vertical', fontFamily: 'monospace' }}
+            />
+          </div>
+          <p className="settings-description">
+            This prompt is sent to the AI model along with the git diff to
+            generate commit messages.
           </p>
         </div>
       </DialogContent>

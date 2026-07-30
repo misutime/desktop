@@ -166,6 +166,14 @@
     width: auto !important;
   }
 
+  .summary .button-component {
+    cursor: pointer;
+
+    .octicon {
+      pointer-events: none;
+    }
+  }
+
   .co-authors-toggle,
   .commit-options-button {
     color: var(--text-secondary-color);
